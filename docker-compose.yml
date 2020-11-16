@@ -9,16 +9,38 @@ services:
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+      # By default, if you run elastic with docker-desktop / wsl 2, you'll get this error
+      #
+      #      [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+      #
+      # To change this setting, the solution is to execute the following:
+      #
+      #      wsl -d docker-desktop
+      #      sysctl -w vm.max_map_count=262144
+      #
+      # The problem is that so far, there is no way to change this setting permanently
+      #      See https://github.com/docker/for-win/issues/5202
+      #
+      #
+      # For "standalone setup", one solution to bypass the initial problem without changing the vm.max_map_count setting
+      # is to set this elastic setting in the compose file:
+      #
+      #       discovery.type=single-node
+      #
+      - discovery.type=single-node
     ulimits:
       memlock:
         soft: -1
         hard: -1
     ports:
       - "9200:9200"
+
     #volumes:
     #  - type: bind
     #    source: /host_mnt/c/Users/phili/DEV/elk/ml-latest-small
     #    target: /data/ml-latest-small
+
   kibana:
     image: docker.elastic.co/kibana/kibana:6.8.13
     ports:
